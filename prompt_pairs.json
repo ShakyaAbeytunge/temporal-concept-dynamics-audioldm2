@@ -1,0 +1,85 @@
+{
+  "tempo": [
+    {
+      "id": "tempo_1",
+      "prompt_a": "A slow, atmospheric ambient piano track with soft reverb and long sustained notes",
+      "prompt_b": "A fast, atmospheric ambient piano track with soft reverb and long sustained notes"
+    },
+    {
+      "id": "tempo_2",
+      "prompt_a": "A slow electronic music piece with a smooth texture and evolving background pads",
+      "prompt_b": "A fast electronic music piece with a smooth texture and evolving background pads"
+    },
+    {
+      "id": "tempo_3",
+      "prompt_a": "A slow cinematic soundtrack featuring gentle melodies and a calm mood",
+      "prompt_b": "A fast cinematic soundtrack featuring gentle melodies and a calm mood"
+    },
+    {
+      "id": "tempo_4",
+      "prompt_a": "A slow lo-fi instrumental track with warm tones and a relaxed feeling",
+      "prompt_b": "A fast lo-fi instrumental track with warm tones and a relaxed feeling"
+    },
+    {
+      "id": "tempo_5",
+      "prompt_a": "A slow ambient soundscape designed for meditation and focus",
+      "prompt_b": "A fast ambient soundscape designed for meditation and focus"
+    }
+  ],
+
+  "instrumentation": [
+    {
+      "id": "instrument_1",
+      "prompt_a": "An ambient instrumental track led by a soft piano melody with minimal accompaniment",
+      "prompt_b": "An ambient instrumental track led by a soft acoustic guitar melody with minimal accompaniment"
+    },
+    {
+      "id": "instrument_2",
+      "prompt_a": "A cinematic music piece featuring sustained string instruments and a spacious atmosphere",
+      "prompt_b": "A cinematic music piece featuring sustained brass instruments and a spacious atmosphere"
+    },
+    {
+      "id": "instrument_3",
+      "prompt_a": "An electronic ambient track dominated by warm analog synthesizer sounds",
+      "prompt_b": "An electronic ambient track dominated by bright digital synthesizer sounds"
+    },
+    {
+      "id": "instrument_4",
+      "prompt_a": "A calm instrumental piece centered around a solo piano with subtle background textures",
+      "prompt_b": "A calm instrumental piece centered around a solo flute with subtle background textures"
+    },
+    {
+      "id": "instrument_5",
+      "prompt_a": "A minimalist ambient track built around deep, resonant bass tones",
+      "prompt_b": "A minimalist ambient track built around light, airy high-frequency tones"
+    }
+  ],
+
+  "rhythm": [
+    {
+      "id": "rhythm_1",
+      "prompt_a": "An electronic track with a steady and regular rhythmic pattern throughout",
+      "prompt_b": "An electronic track with a syncopated and irregular rhythmic pattern throughout"
+    },
+    {
+      "id": "rhythm_2",
+      "prompt_a": "A percussion-based music piece with a consistent and predictable beat",
+      "prompt_b": "A percussion-based music piece with a complex and unpredictable beat"
+    },
+    {
+      "id": "rhythm_3",
+      "prompt_a": "An ambient electronic track with a smooth and continuous rhythm",
+      "prompt_b": "An ambient electronic track with a broken and fragmented rhythm"
+    },
+    {
+      "id": "rhythm_4",
+      "prompt_a": "A rhythmic instrumental track with evenly spaced drum hits",
+      "prompt_b": "A rhythmic instrumental track with unevenly spaced drum hits"
+    },
+    {
+      "id": "rhythm_5",
+      "prompt_a": "A calm electronic music piece with a subtle and repetitive rhythmic pulse",
+      "prompt_b": "A calm electronic music piece with a subtle but constantly shifting rhythmic pulse"
+    }
+  ]
+}
