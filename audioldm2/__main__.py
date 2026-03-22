@@ -114,7 +114,7 @@ parser.add_argument(
 	"--n_candidate_gen_per_text",
 	type=int,
 	required=False,
-	default=3,
+	default=1,
 	help="Automatic quality control. This number control the number of candidates (e.g., generate three audios and choose the best to show you). A Larger value usually lead to better quality with heavier computation",
 )
 
@@ -132,7 +132,7 @@ parser.add_argument(
     required=False,
     default="generation",
     help="{generation,sr_inpainting} generation: text-to-audio generation; sr_inpainting: super resolution inpainting",
-    choices=["generation", "sr_inpainting"]
+    choices=["generation", "sr_inpainting", "intervention"]
 )
 
 args = parser.parse_args()
@@ -217,5 +217,18 @@ for text in prompt_todo:
             batchsize=args.batchsize,
             latent_t_per_second=latent_t_per_second
         )
+	# elif(args.mode == "intervention"):
+	# 	waveform = text_to_audio_PCI(
+    #         audioldm2,
+    #         text,
+    #         transcription=transcription, # To avoid the model to ignore the last vocab
+    #         seed=random_seed,
+    #         duration=duration,
+    #         guidance_scale=guidance_scale,
+    #         ddim_steps=args.ddim_steps,
+    #         n_candidate_gen_per_text=n_candidate_gen_per_text,
+    #         batchsize=args.batchsize,
+    #         latent_t_per_second=latent_t_per_second
+    #     )
     
 	save_wave(waveform, save_path, name=name, samplerate=sample_rate)

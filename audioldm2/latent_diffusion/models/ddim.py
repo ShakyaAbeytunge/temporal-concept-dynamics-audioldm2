@@ -97,6 +97,8 @@ class DDIMSampler(object):
         batch_size,
         shape,
         conditioning=None,
+        PCI_conditioning=None, # added by me
+        tau=None,
         callback=None,
         normals_sequence=None,
         img_callback=None,
@@ -110,7 +112,7 @@ class DDIMSampler(object):
         corrector_kwargs=None,
         verbose=True,
         x_T=None,
-        log_every_t=100,
+        log_every_t=1, #changed by me
         unconditional_guidance_scale=1.0,
         unconditional_conditioning=None,  # this has to come in the same format as the conditioning, # e.g. as encoded tokens, ...
         dynamic_threshold=None,
@@ -143,6 +145,8 @@ class DDIMSampler(object):
         samples, intermediates = self.ddim_sampling(
             conditioning,
             size,
+            PCI_cond=PCI_conditioning, # added by me
+            tau=tau, # added by me
             callback=callback,
             img_callback=img_callback,
             quantize_denoised=quantize_x0,
@@ -160,6 +164,7 @@ class DDIMSampler(object):
             dynamic_threshold=dynamic_threshold,
             ucg_schedule=ucg_schedule,
         )
+        
         return samples, intermediates
 
     @torch.no_grad()
@@ -167,6 +172,8 @@ class DDIMSampler(object):
         self,
         cond,
         shape,
+        PCI_cond=None, # added by me
+        tau=None, # added by me
         x_T=None,
         ddim_use_original_steps=False,
         callback=None,
@@ -175,7 +182,7 @@ class DDIMSampler(object):
         mask=None,
         x0=None,
         img_callback=None,
-        log_every_t=100,
+        log_every_t=1, #changed by me
         temperature=1.0,
         noise_dropout=0.0,
         score_corrector=None,
@@ -208,7 +215,7 @@ class DDIMSampler(object):
             )
             timesteps = self.ddim_timesteps[:subset_end]
 
-        intermediates = {"x_inter": [img], "pred_x0": [img]}
+        intermediates = {"x_inter": [], "pred_x0": [], "t": []} # changed by me, removed img from initialization
         time_range = (
             reversed(range(0, timesteps))
             if ddim_use_original_steps
@@ -218,7 +225,11 @@ class DDIMSampler(object):
         print(f"Running DDIM Sampling with {total_steps} timesteps")
 
         iterator = tqdm(time_range, desc="DDIM Sampler", total=total_steps)
+        
+        # print time_range to check
+        # print(f"time_range: {list(time_range)}")
 
+        condition = cond
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
             ts = torch.full((b,), step, device=device, dtype=torch.long)
@@ -234,9 +245,14 @@ class DDIMSampler(object):
                 assert len(ucg_schedule) == len(time_range)
                 unconditional_guidance_scale = ucg_schedule[i]
 
+            # changing condition for PCI, added by me
+            if PCI_cond is not None and tau == step:
+                condition = PCI_cond
+                print(f"Using PCI condition at step {step} with guidance scale {unconditional_guidance_scale}")
+
             outs = self.p_sample_ddim(
                 img,
-                cond,
+                condition,
                 ts,
                 index=index,
                 use_original_steps=ddim_use_original_steps,
@@ -258,7 +274,7 @@ class DDIMSampler(object):
             if index % log_every_t == 0 or index == total_steps - 1:
                 intermediates["x_inter"].append(img)
                 intermediates["pred_x0"].append(pred_x0)
-
+                intermediates["t"].append(step)
         return img, intermediates
 
     @torch.no_grad()

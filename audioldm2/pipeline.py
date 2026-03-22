@@ -79,8 +79,12 @@ def extract_kaldi_fbank_feature(waveform, sampling_rate, log_mel_spec):
 
     return {"ta_kaldi_fbank": fbank}  # [1024, 128]
 
-def make_batch_for_text_to_audio(text, transcription="", waveform=None, fbank=None, batchsize=1):
+def make_batch_for_text_to_audio(text, PCI_text=None, transcription="", waveform=None, fbank=None, batchsize=1):
     text = [text] * batchsize
+
+    if PCI_text is not None:
+        PCI_text = [PCI_text] * batchsize
+
     if(transcription):
         transcription = text2phoneme(transcription)
     transcription = [transcription] * batchsize
@@ -111,6 +115,7 @@ def make_batch_for_text_to_audio(text, transcription="", waveform=None, fbank=No
 
     batch = {
         "text": text,  # list
+        "pci_text": PCI_text, # list
         "fname": [text_to_filename(t) for t in text],  # list
         "waveform": waveform,
         "stft": stft,
@@ -173,21 +178,28 @@ def build_model(ckpt_path=None, config=None, device=None, model_name="audioldm2-
 
     latent_diffusion.load_state_dict(checkpoint["state_dict"])
     
-    latent_diffusion.eval()
-    latent_diffusion = latent_diffusion.to(device)
+    latent_diffusion.eval()   
+    
+    if model_name == 'audioldm2-music-665k': # added by me 
+        latent_diffusion = latent_diffusion.half() # added by me 
+        latent_diffusion = latent_diffusion.to(device) # added by me 
+    else: 
+        latent_diffusion = latent_diffusion.to(device)
     
     return latent_diffusion
 
 def text_to_audio(
     latent_diffusion,
     text,
+    PCI_text=None,
+    tau=None,
     transcription="",
     seed=42,
     ddim_steps=200,
     duration=10,
-    batchsize=1,
+    batchsize=1, # for generating multiple audio samples for the same text input, set batchsize > 1
     guidance_scale=3.5,
-    n_candidate_gen_per_text=3,
+    n_candidate_gen_per_text=1,
     latent_t_per_second=25.6,
     config=None,
 ):
@@ -195,18 +207,20 @@ def text_to_audio(
     seed_everything(int(seed))
     waveform = None
 
-    batch = make_batch_for_text_to_audio(text, transcription=transcription, waveform=waveform, batchsize=batchsize)
+    batch = make_batch_for_text_to_audio(text, PCI_text=PCI_text, transcription=transcription, waveform=waveform, batchsize=batchsize)
 
     latent_diffusion.latent_t_size = int(duration * latent_t_per_second)
 
     with torch.no_grad():
-        waveform = latent_diffusion.generate_batch(
-            batch,
-            unconditional_guidance_scale=guidance_scale,
-            ddim_steps=ddim_steps,
-            n_gen=n_candidate_gen_per_text,
-            duration=duration,
-        )
+        with torch.autocast(device_type="cuda"): # added by me
+            waveform = latent_diffusion.generate_batch(
+                batch,
+                tau=tau, # added by me
+                unconditional_guidance_scale=guidance_scale,
+                ddim_steps=ddim_steps,
+                n_gen=n_candidate_gen_per_text,
+                duration=duration,
+            )
 
     return waveform
 

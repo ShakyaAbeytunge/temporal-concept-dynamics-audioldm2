@@ -11,6 +11,8 @@ from tqdm import tqdm
 from torchvision.utils import make_grid
 from audioldm2.latent_diffusion.modules.encoders.modules import *
 
+import re # added by me for text sanitization
+
 from audioldm2.latent_diffusion.util import (
     exists,
     default,
@@ -918,6 +920,76 @@ class LatentDiffusion(DDPM):
 
         # Output is a dictionary, where the value could only be tensor or tuple
         return out
+    
+    # added by me
+    def sanitize_text(self, text, max_len=80):
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9\s]", "", text)
+        text = text.strip().replace(" ", "_")
+        return text[:max_len]
+    
+    # added by me    
+    def log_intermediates(
+        self,
+        intermediates,
+        text,
+        n_gen,
+        save_root="logs/intermediates",
+    ):
+        """
+        intermediates contains:
+            - pred_x0: list[T] of tensors [B, C, T_latent, F_latent]
+            - x_inter: list[T] of tensors
+            - t:       list[T] of diffusion timesteps
+        """
+
+        assert "pred_x0" in intermediates
+        assert "x_inter" in intermediates
+        assert "t" in intermediates
+
+        pred_x0_list = intermediates["pred_x0"]
+        x_inter_list = intermediates["x_inter"]
+        t_list = intermediates["t"]
+
+        num_logged_steps = len(pred_x0_list)
+        batch_size = pred_x0_list[0].shape[0]
+
+        # stack: [T_logged, B, C, latent_t, latent_f]
+        pred_x0 = torch.stack(pred_x0_list, dim=0)
+        x_inter = torch.stack(x_inter_list, dim=0)
+        t = torch.tensor(t_list)
+
+        os.makedirs(save_root, exist_ok=True)
+
+        for b in range(batch_size):
+            prompt = text[b]
+            prompt_name = self.sanitize_text(prompt)
+
+            # candidate index (important for n_gen > 1)
+            sample_idx = b // (batch_size // n_gen)
+
+            save_dir = os.path.join(
+                save_root,
+                prompt_name,
+                f"sample_{sample_idx}",
+            )
+            os.makedirs(save_dir, exist_ok=True)
+
+            torch.save(
+                {
+                    "pred_x0": pred_x0[:, b],  # [T_logged, C, latent_t, latent_f]
+                    "t": t,                   # [T_logged]
+                },
+                os.path.join(save_dir, "pred_x0.pt"),
+            )
+
+            torch.save(
+                {
+                    "x_inter": x_inter[:, b],  # [T_logged, C, latent_t, latent_f]
+                    "t": t,                   # [T_logged]      
+                },
+                os.path.join(save_dir, "x_inter.pt"),
+            )
 
     def decode_first_stage(self, z):
         with torch.no_grad():
@@ -1421,6 +1493,8 @@ class LatentDiffusion(DDPM):
         batch_size,
         ddim,
         ddim_steps,
+        PCI_cond=None, # added by me
+        tau=None, # added by me
         unconditional_guidance_scale=1.0,
         unconditional_conditioning=None,
         use_plms=False,
@@ -1432,7 +1506,7 @@ class LatentDiffusion(DDPM):
         else:
             shape = (self.channels, self.latent_t_size, self.latent_f_size)
 
-        intermediate = None
+        intermediates = None # added an s for intermediate by me
         if ddim and not use_plms:
             ddim_sampler = DDIMSampler(self, device=self.device)
             samples, intermediates = ddim_sampler.sample(
@@ -1440,6 +1514,8 @@ class LatentDiffusion(DDPM):
                 batch_size,
                 shape,
                 cond,
+                PCI_conditioning=PCI_cond, # added by me
+                tau=tau, # added by me
                 verbose=False,
                 unconditional_guidance_scale=unconditional_guidance_scale,
                 unconditional_conditioning=unconditional_conditioning,
@@ -1471,12 +1547,13 @@ class LatentDiffusion(DDPM):
                 **kwargs,
             )
 
-        return samples, intermediate
+        return samples, intermediates # added an s for intermediate by me
 
     @torch.no_grad()
     def generate_batch(
         self,
         batch,
+        tau=None, # added by me
         ddim_steps=200,
         ddim_eta=1.0,
         x_T=None,
@@ -1505,6 +1582,23 @@ class LatentDiffusion(DDPM):
 
             c = self.filter_useful_cond_dict(c)
 
+            # added by me for PCI conditioning
+            if batch["pci_text"] is not None:
+    
+                # Save original text
+                original_text = batch["text"]
+                
+                # Replace with PCI text
+                batch["text"] = batch["pci_text"]
+                
+                _, c_pci = self.get_input(batch, self.first_stage_key, unconditional_prob_cfg=0.0)
+                c_pci = self.filter_useful_cond_dict(c_pci)
+                
+                # Restore original text
+                batch["text"] = original_text
+            else:
+                c_pci = None
+
             text = super().get_input(batch, "text")
 
             # Generate multiple samples
@@ -1521,6 +1615,18 @@ class LatentDiffusion(DDPM):
                         c[cond_key][k] = torch.cat([c[cond_key][k]] * n_gen, dim=0)
                 else:
                     c[cond_key] = torch.cat([c[cond_key]] * n_gen, dim=0)
+            
+            # added by me for PCI conditioning
+            if c_pci is not None:
+                for cond_key in c_pci.keys():
+                    if isinstance(c_pci[cond_key], list):
+                        for i in range(len(c_pci[cond_key])):
+                            c_pci[cond_key][i] = torch.cat([c_pci[cond_key][i]] * n_gen, dim=0)
+                    elif isinstance(c_pci[cond_key], dict):
+                        for k in c_pci[cond_key].keys():
+                            c_pci[cond_key][k] = torch.cat([c_pci[cond_key][k]] * n_gen, dim=0)
+                    else:
+                        c_pci[cond_key] = torch.cat([c_pci[cond_key]] * n_gen, dim=0)
 
             text = text * n_gen
 
@@ -1533,8 +1639,10 @@ class LatentDiffusion(DDPM):
                     ].get_unconditional_condition(batch_size)
 
             fnames = list(super().get_input(batch, "fname"))
-            samples, _ = self.sample_log(
+            samples, intermediates = self.sample_log(
                 cond=c,
+                PCI_cond=c_pci, # added by me
+                tau=tau, # added by me
                 batch_size=batch_size,
                 x_T=x_T,
                 ddim=use_ddim,
@@ -1543,6 +1651,13 @@ class LatentDiffusion(DDPM):
                 unconditional_guidance_scale=unconditional_guidance_scale,
                 unconditional_conditioning=unconditional_conditioning,
                 use_plms=use_plms,
+            )
+
+            # recording intermediates
+            self.log_intermediates(
+                intermediates=intermediates,
+                text=text,
+                n_gen=n_gen,
             )
 
             mel = self.decode_first_stage(samples)
