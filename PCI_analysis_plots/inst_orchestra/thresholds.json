@@ -1,0 +1,17 @@
+{
+    "piano": {
+        "25th_percentile": 0.162947665899992,
+        "50th_percentile": 0.2580069750547409,
+        "75th_percentile": 0.2906011566519737
+    },
+    "drum": {
+        "25th_percentile": 0.17409144341945648,
+        "50th_percentile": 0.24099286645650864,
+        "75th_percentile": 0.36036959290504456
+    },
+    "overall": {
+        "25th_percentile": 0.1660183183848858,
+        "50th_percentile": 0.2580069750547409,
+        "75th_percentile": 0.3127649202942848
+    }
+}

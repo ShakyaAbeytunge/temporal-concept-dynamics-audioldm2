@@ -1,0 +1,22 @@
+{
+    "trumpet": {
+        "25th_percentile": 0.29977717250585556,
+        "50th_percentile": 0.34970971941947937,
+        "75th_percentile": 0.3854379281401634
+    },
+    "flute": {
+        "25th_percentile": 0.31134799122810364,
+        "50th_percentile": 0.36413833498954773,
+        "75th_percentile": 0.4094025194644928
+    },
+    "violin": {
+        "25th_percentile": 0.19266115501523018,
+        "50th_percentile": 0.28634965419769287,
+        "75th_percentile": 0.3207326680421829
+    },
+    "overall": {
+        "25th_percentile": 0.2819078639149666,
+        "50th_percentile": 0.3269994705915451,
+        "75th_percentile": 0.37788092344999313
+    }
+}
