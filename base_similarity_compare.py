@@ -12,8 +12,6 @@ import torch.nn.functional as F
 import seaborn as sns
 
 sns.set_theme(style="whitegrid", context="paper")  
-# context="talk" → good for presentations
-# use "paper" if this is for a paper
 
 plt.rcParams["grid.alpha"] = 0.6      # lower opacity (default ~0.8)
 plt.rcParams["grid.linewidth"] = 0.6  # thinner lines
