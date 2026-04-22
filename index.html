@@ -2,28 +2,388 @@
 <html>
 <head>
   <title>PCI Audio Demo</title>
+
   <style>
-    body { font-family: Arial; max-width: 800px; margin: auto; }
-    h2 { margin-top: 40px; }
+    body {
+      font-family: Arial;
+      max-width: 70%;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3 {
+      margin-top: 30px;
+    }
+
+    .section {
+      margin-top: 50px;
+    }
+
+    .concept {
+      margin-top: 25px;
+    }
+
+    .audio-row {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .audio-item {
+      text-align: center;
+    }
+
+    audio {
+      width: 320px;
+    }
+
+    .caption {
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .abstract {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .figure {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .figure img {
+      max-width: 100%;
+      border-radius: 6px;
+    }
+
+    .explanation {
+      font-size: 16px;
+      margin-top: 8px;
+      color: #444;
+    }
+
+    .prompt-box {
+      background: #f9f9f9;
+      border-left: 4px solid #555;
+      padding: 10px 15px;
+      margin-top: 10px;
+      font-size: 14px;
+      font-family: monospace;
+    }
+
+    .prompt-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .figure-caption {
+      font-size: 16px;
+      color: #555;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .spectrogram {
+      width: 320px;
+      display: block;
+      margin-bottom: 5px;
+      border-radius: 4px;
+    }
+
+    ol {
+      list-style: none;
+      counter-reset: ref-counter;
+      padding-left: 0;
+    }
+
+    ol li {
+      counter-increment: ref-counter;
+      margin-bottom: 10px;
+    }
+
+    ol li::before {
+      content: "[" counter(ref-counter) "]";
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .tau {
+      font-family: "Times New Roman", Times, serif;
+      font-style: italic;
+    }
+
   </style>
 </head>
+
 <body>
 
 <h1>Temporal Concept Dynamics in AudioLDM2</h1>
 
-<h2>Piano (Orchestra Context)</h2>
+<div class="abstract">
+<p>
+This project explores how musical concepts emerge and evolve over time in text-to-audio diffusion models by applying Prompt-Conditioned Interventions (PCI) <a href="#ref1">[1]</a> for AudioLDM2 <a href="#ref2">[2]</a>. By changing the conditioning signal by injecting concepts to the conditioning prompt at different diffusion steps (<i style="font-family: 'Times New Roman', Times, serif;">τ</i>), we analyze the trade-off between concept strength (sensitivity) and preservation of the original audio structure (editability).
+</p>
+</div>
 
-<p><b>Base</b></p>
-<audio controls src="audio\PCI_piano_seed27.wav"></audio>
+<div class="figure">
+  <img src="PCI_.png" alt="PCI diagram" width="60%" high="auto">
+  <p><i>Illustration of Prompt-Conditioned Intervention (PCI) in audio diffusion.</i></p>
+</div>
 
-<p><b>τ = 300 (unsuccessful)</b></p>
-<audio controls src="audio\PCI_piano_seed27_tau301.wav"></audio>
+<div class="figure-caption">
+  The following examples illustrate the resulting audio samples obtained by injecting the target concept (c) at different intervention timesteps (<span class="tau">τ</span>) during the diffusion process. <b>Early interventions</b> correspond to higher values of <span class="tau">τ</span>, while <b>later interventions</b> correspond to lower values of <span class="tau">τ</span> (see diagram above for reference).
+</div>
 
-<p><b>τ = 600 (slight appearance)</b></p>
-<audio controls src="audio\PCI_piano_seed27_tau601.wav"></audio>
+<!-- ===================== -->
+<!-- INSTRUMENTATION -->
+<!-- ===================== -->
+<div class="section">
+<h2>1. Instrumentation Concepts</h2>
 
-<p><b>τ = 900 (successful)</b></p>
-<audio controls src="audio\PCI_piano_seed27_tau901.wav"></audio>
+<!-- ORCHESTRAL CONTEXT -->
+<h3>Orchestral Context</h3>
+
+<div class="prompt-box">
+  <div class="prompt-title">Base prompt (P<sub>b</sub>):</div>
+  "A music track played by an orchestra"
+
+  <div class="prompt-title" style="margin-top:8px;">Concept-conditioned prompt (P<sub>b</sub> ⊕ c):</div>
+  "A music track played by an orchestra with a &lt;instrument&gt; solo"
+</div>
+
+<!-- Piano -->
+<div class="concept">
+<h4>Piano</h4>
+
+<div class="audio-row">
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_piano_seed27.png">
+    <audio controls src="audio/PCI_piano_seed27.wav"></audio>
+    <div class="caption">Base prompt generation (No intervention)</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_piano_seed27_tau301.png">
+    <audio controls src="audio/PCI_piano_seed27_tau301.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 300</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_piano_seed27_tau601.png">
+    <audio controls src="audio/PCI_piano_seed27_tau601.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 600</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_piano_seed27_tau901.png">
+    <audio controls src="audio/PCI_piano_seed27_tau901.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 900</div>
+  </div>
+</div>
+
+<p class="explanation">
+Late interventions successfully introduce the piano while preserving orchestral structure, whereas early interventions have limited effect.
+</p>
+</div>
+
+<!-- BAND CONTEXT -->
+<h3>Band Context</h3>
+
+<div class="prompt-box">
+  <div class="prompt-title">Base prompt (P<sub>b</sub>):</div>
+  "A live recording of a band"
+
+  <div class="prompt-title" style="margin-top:8px;">
+    Concept-conditioned prompt (P<sub>b</sub> ⊕ c):
+  </div>
+  "A live recording of a band with a &lt;instrument&gt; solo"
+</div>
+
+
+<!-- Trumpet -->
+<div class="concept">
+<h4>Trumpet</h4>
+
+<div class="audio-row">
+  <!-- replace paths -->
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_trumpet_seed6.png">
+    <audio controls src="audio/PCI_trumpet_seed6.wav"></audio>
+    <div class="caption">Base prompt generation (No intervention)</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_trumpet_seed6_tau301.png">
+    <audio controls src="audio/PCI_trumpet_seed6_tau301.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 300</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_trumpet_seed6_tau601.png">
+    <audio controls src="audio/PCI_trumpet_seed6_tau601.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 600</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_trumpet_seed6_tau901.png">
+    <audio controls src="audio/PCI_trumpet_seed6_tau901.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 900</div>
+  </div>
+</div>
+
+<p class="explanation">
+Trumpet shows strong controllability, achieving high concept presence while maintaining base structure across a wide range of timesteps. The lower frequency patterns in the spectrogram of the base prompt generation are almost preserved across all interventions, showing higher editability compared to other instruments.
+</p>
+</div>
+
+<!-- Violin -->
+<div class="concept">
+<h4>Violin</h4>
+
+<div class="audio-row">
+  <!-- replace paths -->
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_violin_seed25.png">
+    <audio controls src="audio/PCI_violin_seed25.wav"></audio>
+    <div class="caption">Base prompt generation (No intervention)</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_violin_seed25_tau301.png">
+    <audio controls src="audio/PCI_violin_seed25_tau301.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 300</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_violin_seed25_tau601.png">
+    <audio controls src="audio/PCI_violin_seed25_tau601.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 600</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_violin_seed25_tau901.png">
+    <audio controls src="audio/PCI_violin_seed25_tau901.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 900</div>
+  </div>
+</div>
+
+<p class="explanation">
+Violin insertion often disrupts the original band structure, reflecting a weaker trade-off between editability and concept strength (see spectrograms for visual reference).
+</p>
+</div>
+
+</div>
+
+<!-- ===================== -->
+<!-- GENRE -->
+<!-- ===================== -->
+<div class="section">
+<h2>2. Genre Concepts</h2>
+
+<div class="prompt-box">
+  <div class="prompt-title">Base prompt (P<sub>b</sub>):</div>
+  "A music track"
+
+  <div class="prompt-title" style="margin-top:8px;">
+    Concept-conditioned prompt (P<sub>b</sub> ⊕ c):
+  </div>
+  "A &lt;genre&gt; music track"
+</div>
+
+<!-- Classical -->
+<div class="concept">
+<h3>Classical</h3>
+
+<div class="audio-row">
+  <!-- replace paths -->
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_classical_seed16.png">
+    <audio controls src="audio/PCI_classical_seed16.wav"></audio>
+    <div class="caption">Base prompt generation (No intervention)</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_classical_seed16_tau301.png">
+    <audio controls src="audio/PCI_classical_seed16_tau301.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 300</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_classical_seed16_tau601.png">
+    <audio controls src="audio/PCI_classical_seed16_tau601.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 600</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_classical_seed16_tau901.png">
+    <audio controls src="audio/PCI_classical_seed16_tau901.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 900</div>
+  </div>
+</div>
+
+<p class="explanation">
+Classical genre only can be effectively inserted in early interventions (<span class="tau">τ</span> = 900), even though some classical instruments can be perceived in later interventions. In effective interventions, it fully disrupts the original structure, indicating a weak trade-off between concept strength and editability.
+
+<!-- Jazz -->
+<div class="concept">
+<h3>Jazz</h3>
+
+<div class="audio-row">
+  <!-- replace paths -->
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_jazz_seed25.png">
+    <audio controls src="audio/PCI_jazz_seed25.wav"></audio>
+    <div class="caption">Base prompt generation (No intervention)</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_jazz_seed25_tau301.png">
+    <audio controls src="audio/PCI_jazz_seed25_tau301.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 300</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_jazz_seed25_tau601.png">
+    <audio controls src="audio/PCI_jazz_seed25_tau601.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 600</div>
+  </div>
+
+  <div class="audio-item">
+    <img class="spectrogram" src="spectrograms/PCI_jazz_seed25_tau901.png">
+    <audio controls src="audio/PCI_jazz_seed25_tau901.wav"></audio>
+    <div class="caption"><span class="tau">τ</span> = 900</div>
+  </div>
+</div>
+
+<p class="explanation">
+Similar to all genre concepts, jazz can also only be effectively inserted in early interventions, with later interventions showing limited concept presence. In general, genre concepts show a weaker trade-off between concept strength and editability, as they often require significant structural changes to the original audio to be effectively inserted.
+</p>
+</div>
+
+<hr>
+
+<h3>References</h3>
+<ol>
+<li id="ref1">
+A. Gorgün et al., 
+"Temporal Concept Dynamics in Diffusion Models via Prompt-Conditioned Interventions," 
+in <i>Proc. International Conference on Learning Representations (ICLR)</i>, 2026. 
+Available: <a href="https://arxiv.org/abs/2512.08486">https://arxiv.org/abs/2512.08486</a>
+</li>
+
+<li id="ref2">
+H. Liu et al., 
+"AudioLDM 2: Learning Holistic Audio Generation With Self-Supervised Pretraining," 
+<i>IEEE/ACM Transactions on Audio, Speech, and Language Processing</i>, 
+vol. 32, pp. 2871–2883, 2024. 
+<a href="https://doi.org/10.1109/TASLP.2024.3399607">doi:10.1109/TASLP.2024.3399607</a>
+</li>
+</ol>
+
+</div>
 
 </body>
 </html>
